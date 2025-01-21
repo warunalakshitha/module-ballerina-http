@@ -25,6 +25,7 @@ import io.ballerina.stdlib.http.transport.contract.HttpClientConnector;
 import io.ballerina.stdlib.http.transport.message.HttpCarbonMessage;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * {@code DataContext} is the wrapper to hold {@code Context} and {@code Callback}.
@@ -35,6 +36,10 @@ public class DataContext {
     private final BObject requestObj;
     private final CompletableFuture<Object> balFuture;
     private final HttpCarbonMessage correlatedMessage;
+    public final long startTime = System.currentTimeMillis();
+    public static final AtomicInteger count  = new AtomicInteger(0);
+    public static final long MAX_PRINT_TIME_LIMIT = Long.parseLong(System.getenv("MAX_PRINT_TIME_LIMIT"));
+    private final int id = count.incrementAndGet();
 
     public DataContext(Environment environment, CompletableFuture<Object> balFuture,
                        HttpClientConnector clientConnector, BObject requestObj,
@@ -88,6 +93,10 @@ public class DataContext {
     }
 
     public CompletableFuture<Object> getFuture() {
+        long timeTaken = System.currentTimeMillis() - startTime;
+        if (timeTaken > MAX_PRINT_TIME_LIMIT) {
+            System.out.println("Data context with id " + id + " completed with " + timeTaken + " ms.");
+        }
         return balFuture;
     }
 }
